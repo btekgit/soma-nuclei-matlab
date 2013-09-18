@@ -1,4 +1,4 @@
-function newCC=cleanSomaDetectionbyCC(inpCCName)
+function newCC=cleanSomaDetectionbyCC(root, inpCCName,Volume_th)
 
 
 %t3 = bwlabeln(inpVolume);
@@ -8,15 +8,16 @@ if nargin ==0
     root = 'D:\mouse_brain\shawnnew\ccout\whole\'
     %inpCCName  ='cc_th_50.h5detectionbb_mxlabel_all_regionProps.mat';
     inpCCName  ='cc_th_90.h5detectionbb_mxlabel_all_regionProps.mat';
-    
 end
 d = load (strcat(root,inpCCName));
 
 % one by one reconstruct all the detections if valid. keep them,
 % if possible fill them . and update CC
+if(nargin ==2) 
+    Volume_th = 1000; 
+end
 imSize = d.CC.ImageSize;
-numObjects = d.CC.NumObjects;
-Volume_th = 1000;
+numObjects = d.CC.NumObjects
 Disk_ratio = 5;
 erased = zeros(numObjects,1);
 parted = zeros(numObjects,1);
@@ -26,7 +27,11 @@ newCC = bwconncomp(dummy);
 newCC.ImageSize = d.CC.ImageSize;
 newCC.Connectivity = d.CC.Connectivity;
 for o = 1: numObjects
-    completed = floor(o/numObjects*100)
+      completed = floor(o/numObjects*100);
+     if (mod(o,50)==0)
+        fprintf('\b\b\b');
+        fprintf('%3d', completed);
+    end
     if ( d.CC.areas(o) < Volume_th/8)
         erased(o) = 1;
         continue;
@@ -97,7 +102,7 @@ newCC.centroids = cat(1, s.Centroid);
 newCC.bbx =  cat(1, s.BoundingBox);
 newCC.areas =  cat(1, s.Area);
 CC = newCC;
-save(strcat(root,inpCCName,'cc_processed_th_1000.mat'),'CC','Volume_th');
+save(strcat(root,inpCCName(1:end-4),'cc_processed_th_',num2str(Volume_th),'.mat'),'CC','Volume_th');
 
 end
 

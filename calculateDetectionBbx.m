@@ -1,10 +1,11 @@
 % calculate bounding boxes form the volume
 
 %fname = 'D:\mouse_brain\shawnnew\20130506-interareal_mag4\20130506-interareal_mag4\cc_all.h5'
-fname = 'D:\mouse_brain\shawnnew\ccout\whole_ilp8\cc_th_50.h5'
+root = '/mnt/disk/btek/mouse_brain/'
+fname = 'cc_th_50.h5'
 dsetname = '/cc'
 
-inf1 = h5info(fname,dsetname);
+inf1 = h5info([root, fname],dsetname);
 nZ = inf1.Dataspace.Size(1);
 nX = inf1.Dataspace.Size(3);
 nY = inf1.Dataspace.Size(2);
@@ -59,7 +60,7 @@ for iz= 1:length(setz)-1
                 end
                 endix = startix+counts; % startix <= pos< endix
                 [startix;counts;endix];  
-                subcube= h5read(fname,dsetname,startix,counts);
+                subcube= h5read([root, fname],dsetname,startix,counts);
                 maxlabelcube = max(subcube(:));
                 %ulabels = unique(subcube(:));
                 %subcube = permute(permute(subcube, [3, 2, 1]),[2,1,3]);
@@ -95,7 +96,7 @@ for iz= 1:length(setz)-1
                 end
                 endix = startix+counts; % startix <= pos< endix
                 [startix;counts;endix] ;
-                subcube= h5read(fname,dsetname,startix,counts);
+                subcube= h5read([root, fname],dsetname,startix,counts);
                 subcubevec = subcube(:)+1;
                 uniq_labels = unique(subcubevec);
                 tk = hist(double(subcubevec), double(uniq_labels))';
@@ -115,12 +116,12 @@ end
 % for small volume it was 
 %mxlabel= 476567
 %%
-    save(strcat(fname,'detectionbb_mxlabel.mat'),'mxlabel', 'labelhist');
+    save(strcat(root, fname(1:end-4),'_detectionbb_mxlabel.mat'),'mxlabel', 'labelhist');
     %load(strcat(fname,'detectionbb_mxlabel.mat'));
     %ccpixlistxyz = cell(mxlabel,1);%, [1 1 1 1 1]);
     ccpixlistI = cell(mxlabel+1,1);%, [1 1 1 1 1]);
     labelhist(1)= 0; 
-    Area_th = 125; 
+    Area_th = 1; 
     validregioncounter =0; 
     for ic = 1: mxlabel
         if(labelhist(ic) >= Area_th) 
@@ -151,7 +152,7 @@ for iz= 1:length(setz)-1
                 end
                 endix = startix+counts; % startix <= pos< endix
                 [startix;counts;endix]  ;
-                subcube= h5read(fname,dsetname,startix,counts);
+                subcube= h5read([root, fname],dsetname,startix,counts);
                 %  unfortunately we have to do this because of ilastik xyz
                 %  order
                 subcube = permute(permute(subcube, [3, 2, 1]),[2,1,3]);
@@ -188,6 +189,7 @@ for iz= 1:length(setz)-1
                     curcount = labelcounter(base0labelindex);
                     %we write in the compoenent list 
                     if(isempty(ccpixlistI{base0labelindex}))
+                        curcount
                         wrongg=1
                         %pause;
                     end
@@ -210,7 +212,7 @@ for iz= 1:length(setz)-1
     end
 end
 
-save(strcat(fname,'detectionbb_mxlabel.mat'),'mxlabel','labelhist','labelcounter','ccpixlistI','-v7.3');
+save(strcat(root, fname(1:end-3),'_detection_bbx_Ath',num2str(Area_th),'.mat'),'mxlabel','labelhist','labelcounter','ccpixlistI','-v7.3');
 %save(strcat(fname,'_pixlist.mat'),'mxlabel','labelhist','labelcounter','ccpixlistI');
 %%
 % label, radius, cx,cy,cz, bblow, bbhigh
@@ -248,6 +250,6 @@ CC.areas =  cat(1, s.Area);
 %     fprintf(fid, '\n');
 % end
 
-save(strcat(fname,'detectionbb_mxlabel_all_regionProps.mat'),'CC','Area_th','-v7.3');
+save(strcat(root, fname(1:end-3),'_detection_bbx_Ath_',num2str(Area_th),'_regionprops.mat'),'CC','Area_th','-v7.3');
 %save(strcat(fname,'detectionbb_mxlabel_all_regionProps.mat'),'CC','Area_th');
 

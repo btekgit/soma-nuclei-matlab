@@ -13,7 +13,8 @@
 
 % inputs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 root = '/mnt/disk/btek/mouse_brain/'
-fname = 'cc_th_50_all_regionProps_Ath_5.mat'
+%rawsfname =  'cc_th_50_all_regionProps_Ath_5.mat'%'cc_th_50_detection_bbx_Ath_1_regionprops.mat';'cc_th_50.h5all_region_props_vth1_25.mat';
+fname = 'cc_th_50.h5all_region_props_vth1_25.matcc_processed_th_1000.mat'
 d = load (strcat(root,fname));
 CC  =d.CC;
 gt = load('gtintereal20130506.mat') %gives validannotations.
