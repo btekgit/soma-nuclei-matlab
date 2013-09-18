@@ -6,21 +6,27 @@
 %save(str)cat(fname,'detectionbb_mxlabel.mat'),'mxlabel','ccpixlistI', 'centroids', 'bbx', 'areas');
 %fnam = 'D:\mouse_brain\shawnnew\20130506-interareal_mag4\20130506-interareal_mag4\cc_smallish.h5'
 %root = 'D:\mouse_brain\shawnnew\ccout\training\'
-root = 'D:\mouse_brain\20130506-interareal_mag4\ccout\whole_ilp8\'
+%root = 'D:\mouse_brain\20130506-interareal_mag4\ccout\whole_ilp8\'
 %d = load(strcat(root,'cc_th_50.h5detectionbb_mxlabel_all_regionProps.mat'));
 %d = load (strcat(root,'cc_th_50.h5detectionbb_mxlabel_all_regionProps.matcc_processed.mat'));
-fname = 'cc_th_50_detectionbb_mxlabel_all_regionProps.matcc_processed_th_1000.mat';
+%fname = 'cc_th_50_detectionbb_mxlabel_all_regionProps.matcc_processed_th_1000.mat';
+
+% inputs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+root = '/mnt/disk/btek/mouse_brain/'
+fname = 'cc_th_50_all_regionProps_Ath_5.mat'
 d = load (strcat(root,fname));
 CC  =d.CC;
-%d = load(strcat(root, 'cc_th_90.h5detectionbb_mxlabel_all_regionProps.matcc_processed.mat'));
-%d.CC = d.newCC;
-
-dumpDetections = 0;
-
 gt = load('gtintereal20130506.mat') %gives validannotations.
-gt.processed = zeros(length(gt.validannotations),1);
-gt.hits = zeros(length(gt.validannotations),3);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% options%%%%%%%%%%%%%%%%%%%%%%%%%
+dumpDetections = 0;
+removeEdgeTouching = 1;
+writeintotxtfiles = 0;
+plotscatters = 0;
+plthists = 0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%
 ndetections = length(CC.areas)
@@ -32,7 +38,7 @@ dep = imSize(3);
 wid = imSize(2);
 hei = imSize(1);
 startpos =[1 1 1];
-removeEdgeTouching = 0
+
 
 disp('gt points are indexed 0 based');
 % add one
@@ -73,10 +79,10 @@ if(removeEdgeTouching)
     CC = CC2;
 end
 
-[rates,tdgt, tddt, fd, gthitIx,dthitIx] = evaluateWithCenters(gtlistreordered,dt_ctr,dt_pixlists,imSize );
+[rates,tdgt, tddt, fd, gthitIx,dthitIx] = evaluateWithCenters(gtlistreordered,CC,imSize );
 %%
-plt = 1;
-if plt
+
+if plthists
     figure;
     subplot(221);
     [gtrhisthit,binss]= hist(gtr(gthitIx==1));
@@ -144,7 +150,7 @@ end
 
 %%
 
-dumpDetections = 0 ;
+
 if(dumpDetections)
     rsfile = strcat(root, fname(1:end-4),'_orig_evaluations.h5');
     if(~exist(rsfile))
@@ -167,63 +173,68 @@ if(dumpFeatures)
     writeCCFeaturesToHDF5(greyFile,greyData, CC, featureFile);
 end
 %% missing GT's and other scatter plots.
-figure;
-bins = 1: 7552;
-figure;
-hist(gt.validannotations(:,6),bins);
 
-zaxis = load('D:\mouse_brain\20130506-interareal_mag4\20130506-interareal_mag4\zaxis2.txt');
+if(plotscatters)
+    bins = 1: 7552;
+    figure;
+    hist(gt.validannotations(:,6),bins);
+    
+    zaxis = load('D:\mouse_brain\20130506-interareal_mag4\20130506-interareal_mag4\zaxis2.txt');
+    
+    figure
+    
+    subplot(131);
+    scatter3(gtlistreordered(:,1),gtlistreordered(:,2)',gtlistreordered(:,3),floor(gtlistreordered(:,4)/2),'b');
+    xlim([0 1024]); ylim([0 800]); zlim([0 7600]);
+    title('GTruth Annotation');
+    xlabel('x'); ylabel('y'); zlabel('z');
+    view(-45,8)
+    
+    %hold on;
+    subplot(132);
+    scatter3(gtx(gthitIx==1),gty(gthitIx==1),gtz(gthitIx==1),floor(gtr(gthitIx==1)/2),'g');
+    xlim([0 1024]); ylim([0 800]); zlim([0 7600]);
+    title('GTruth Detected');
+    xlabel('x'); ylabel('y'); zlabel('z');
+    view(-45,8)
+    hold on;
+    
+    subplot(133);
+    scatter3(gtx(gthitIx==0),gty(gthitIx==0),gtz(gthitIx==0),floor(gtr(gthitIx==0)/2),'r');
+    xlim([0 1024]); ylim([0 800]); zlim([0 7600]);
+    title('GTruth Missed');
+    xlabel('x'); ylabel('y'); zlabel('z');
+    view(-45,8)
+    
+    figure
+    
+    subplot(131);
+    scatter3(dt_ctr(:,1),dt_ctr(:,2),dt_ctr(:,3),floor(CC.areas/1000),'b');
+    xlim([0 1024]); ylim([0 850]); zlim([0 7600]);
+    xlabel('x'); ylabel('y'); zlabel('z');
+    title('Detections');
+    view(-45,8)
+    
+    
+    subplot(132);
+    scatter3(dt_ctr(dthitIx==1,1),dt_ctr(dthitIx==1,2),dt_ctr(dthitIx==1,3),floor(CC.areas(dthitIx==1)/1000),'g');
+    xlim([0 1024]); ylim([0 850]); zlim([0 7600]);
+    title('True Detections');
+    xlabel('x'); ylabel('y'); zlabel('z');
+    view(-45,8)
+    
+    subplot(133);
+    scatter3(dt_ctr(dthitIx==0,1),dt_ctr(dthitIx==0,2),dt_ctr(dthitIx==0,3),floor(CC.areas(dthitIx==0)/1000),'r');
+    xlim([0 1024]); ylim([0 850]); zlim([0 7600]);
+    title('False Detections');
+    xlabel('x'); ylabel('y'); zlabel('z');
+    view(-45,8)
+end
 
-figure
+%%  write everything to text files.
 
-subplot(131);
-scatter3(gtlistreordered(:,1),gtlistreordered(:,2)',gtlistreordered(:,3),floor(gtlistreordered(:,4)/2),'b');
-xlim([0 1024]); ylim([0 800]); zlim([0 7600]);
-title('GTruth Annotation');
-xlabel('x'); ylabel('y'); zlabel('z');
-view(-45,8)
-
-%hold on;
-subplot(132);
-scatter3(gtx(gthitIx==1),gty(gthitIx==1),gtz(gthitIx==1),floor(gtr(gthitIx==1)/2),'g');
-xlim([0 1024]); ylim([0 800]); zlim([0 7600]);
-title('GTruth Detected');
-xlabel('x'); ylabel('y'); zlabel('z');
-view(-45,8)
-hold on;
-
-subplot(133);
-scatter3(gtx(gthitIx==0),gty(gthitIx==0),gtz(gthitIx==0),floor(gtr(gthitIx==0)/2),'r');
-xlim([0 1024]); ylim([0 800]); zlim([0 7600]);
-title('GTruth Missed');
-xlabel('x'); ylabel('y'); zlabel('z');
-view(-45,8)
-
-figure
-
-subplot(131);
-scatter3(dt_ctr(:,1),dt_ctr(:,2),dt_ctr(:,3),floor(CC.areas/1000),'b');
-xlim([0 1024]); ylim([0 850]); zlim([0 7600]);
-xlabel('x'); ylabel('y'); zlabel('z');
-title('Detections');
-view(-45,8)
-
-
-subplot(132);
-scatter3(dt_ctr(dthitIx==1,1),dt_ctr(dthitIx==1,2),dt_ctr(dthitIx==1,3),floor(CC.areas(dthitIx==1)/1000),'g');
-xlim([0 1024]); ylim([0 850]); zlim([0 7600]);
-title('True Detections');
-xlabel('x'); ylabel('y'); zlabel('z');
-view(-45,8)
-
-subplot(133);
-scatter3(dt_ctr(dthitIx==0,1),dt_ctr(dthitIx==0,2),dt_ctr(dthitIx==0,3),floor(CC.areas(dthitIx==0)/1000),'r');
-xlim([0 1024]); ylim([0 850]); zlim([0 7600]);
-title('False Detections');
-xlabel('x'); ylabel('y'); zlabel('z');
-view(-45,8)
-
-%%  write everything to text files. 
-dt_ctr = CC.centroids;
-dt_areas = CC.areas;
-writeEvaluationResults2TextFile;
+if(writeintotxtfiles)
+    dt_ctr = CC.centroids;
+    dt_areas = CC.areas;
+    writeEvaluationResults2TextFile;
+end
