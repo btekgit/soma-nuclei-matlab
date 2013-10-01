@@ -1,24 +1,24 @@
 function CC=blockWiseComponentAccumulator(folder, filename, datasetname, ...
     chunkSizeMultiplier, Volume_th, saveResults,verbose)
 %function blockWiseComponentAccumulator(folder, filename, datasetname, ...
-    %chunkSizeMultiplier, Volume_th, saveResults,verbose)
-% 
-% This function calculates bounding box, centroid, and voxel coordinate lists 
-%   from a labelled volume (uint32) stored in an hdf5 dataset located in 
+%chunkSizeMultiplier, Volume_th, saveResults,verbose)
+%
+% This function calculates bounding box, centroid, and voxel coordinate lists
+%   from a labelled volume (uint32) stored in an hdf5 dataset located in
 %   'folder/filename/datasetname'.
-% 
+%
 % It performs this by blockwise accumulation of the components.
 % an optional threshold Volume_th eliminates smaller components
 %
-% 
+%
 % Arguments: folder, filename, datasetname
 %
 %
 % [optional arguments]: chunkSizeMultiplier, Volume_th, saveResults,verbose
 %
 % chunkSizeMultiplier: hdf5dataset is processed in blocks which are a
-%   chunkSizeMultiplier multiple of data chunkSize. 
-% 
+%   chunkSizeMultiplier multiple of data chunkSize.
+%
 % Volume_th: threshold value to eliminate small components. Default value
 %   is 5
 %
@@ -32,10 +32,12 @@ function CC=blockWiseComponentAccumulator(folder, filename, datasetname, ...
 %   increase Volume_th to eliminate more components.
 %
 %
-% by F. Boray Tek 02.10.2013 
-% 
+
+
+% by F. Boray Tek 02.10.2013
 %
-% You can redistribute, and/or modify this code. 
+%
+% You can redistribute, and/or modify this code.
 % This code is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -103,6 +105,10 @@ elseif( saveResults ==1)
     resultsMatFile = strcat(folder, filename(1:end-4),'_bwca.mat');
 end
 
+if(verbose)
+    fprintf('             \n');
+end
+
 
 %%
 %start with calculating block starting positions.
@@ -124,15 +130,23 @@ if (setx(end)~= nX)
 end
 
 %% find maximum label value first.
+if(verbose)
+    disp('computing the maximum:                          ');
+end
 mxlabel = -1;
 for iz= 1:length(setz)-1
     sz = setz(iz);
     for iy = 1:length(sety)-1
         sy = sety(iy);
         for ix = 1: length(setx)-1
+            if(verbose)
+                completed = floor(iz/length(setz)*100);
+                progressDisp(completed);
+            end
+            
             sx = setx(ix);
             % the start position
-            startix = [sz,sy,sx]
+            startix = [sz,sy,sx];
             % cube dimensions to read in z,y,x
             counts = [subCubeDims(1),subCubeDims(2),subCubeDims(3)];
             if (iz == length(setz)-1)
@@ -158,7 +172,7 @@ end
 % display max label
 if(verbose)
     mxlabel
-    disp('now counting number of voxels in each component');
+    disp('now counting number of voxels in each component:                  ');
 end
 %%
 
@@ -169,6 +183,10 @@ for iz= 1:length(setz)-1
     for iy = 1:length(sety)-1
         sy = sety(iy);
         for ix = 1: length(setx)-1
+            if(verbose)
+                completed = floor(iz/length(setz)*100);
+                progressDisp(completed);
+            end
             sx = setx(ix);
             startix = [sz,sy,sx];
             counts = [subCubeDims(1),subCubeDims(2),subCubeDims(3)];
@@ -214,7 +232,7 @@ for ic = 1: mxlabel
 end
 if(verbose)
     disp(strcat('Total regions with size greater than area th:',int2str(validregioncounter)));
-    disp('now accumulating voxel lists');
+    disp('now accumulating voxel lists                        ');
 end
 labelcounter  = ones(size(labelhist));
 %%
@@ -223,6 +241,11 @@ for iz= 1:length(setz)-1
     for iy = 1:length(sety)-1
         sy = sety(iy);
         for ix = 1: length(setx)-1
+            if(verbose)
+                completed = floor(iz/length(setz)*100);
+                progressDisp(completed);
+            end
+            
             sx = setx(ix);
             startix = [sz,sy,sx];
             counts = [subCubeDims(1),subCubeDims(2),subCubeDims(3)];
@@ -327,3 +350,9 @@ end
 %     fprintf(fid, '%d %d %d %d', ix, bbx(ix,:), areas(ix,:),centroids(ix,:));
 %     fprintf(fid, '\n');
 % end
+
+end
+function progressDisp(completed)
+    fprintf('\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b');
+    fprintf('Completed:%3d/100', completed);
+end
