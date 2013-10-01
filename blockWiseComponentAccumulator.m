@@ -1,4 +1,4 @@
-function blockWiseComponentAccumulator(folder, filename, datasetname, ...
+function CC=blockWiseComponentAccumulator(folder, filename, datasetname, ...
     chunkSizeMultiplier, Volume_th, saveResults,verbose)
 %function blockWiseComponentAccumulator(folder, filename, datasetname, ...
     %chunkSizeMultiplier, Volume_th, saveResults,verbose)
@@ -95,7 +95,7 @@ else
 end
 
 if(ischar(saveResults))
-    if(~strcmpi(saveResults(end-4:end),'.mat'))
+    if(~strcmpi(saveResults(end-2:end),'.mat'))
         error([saveResults,'has not .mat extension'])
     end
     resultsMatFile = strcat([folder,saveResults]);
@@ -205,7 +205,6 @@ end
 %% Volume thresholding elimination of smaller components
 ccpixlistI = cell(mxlabel+1,1);
 labelhist(1)= 0;
-Volume_th = 1;
 validregioncounter =0;
 for ic = 1: mxlabel
     if(labelhist(ic) >= Volume_th)
@@ -215,7 +214,7 @@ for ic = 1: mxlabel
 end
 if(verbose)
     disp(strcat('Total regions with size greater than area th:',int2str(validregioncounter)));
-    disp('now accumulating pixel lists');
+    disp('now accumulating voxel lists');
 end
 labelcounter  = ones(size(labelhist));
 %%
@@ -293,6 +292,7 @@ end
 if(verbose && saveResults)
     disp('saving maximum label value, component voxel counts, and component voxel lists');
     save(resultsMatFile,'mxlabel','labelhist','Volume_th','labelcounter','ccpixlistI','-v7.3');
+    disp('now calculating centroid and bounding box');
 end
 
 %% calculating region props, bounding box and centroids
@@ -316,14 +316,14 @@ CC.centroids = cat(1, s.Centroid);
 CC.bbx =  cat(1, s.BoundingBox);
 CC.areas =  cat(1, s.Area);
 
-save(strcat(folder, filename(1:end-3),'_bwca_CC.mat'),'CC','Volume_th','-v7.3');
+if(verbose && saveResults)
+    disp('saving the data structure which ');
+    save(strcat(folder, filename(1:end-3),'_bwca_CC.mat'),'CC','Volume_th','-v7.3');
+end
 
-%% optionally we can dump them to txt files which takes too long;
+%% optionally you can dump them to txt files which takes too long;
 % fid = fopen('detectionsbb_all.txt','wt');
 % for ix = 1: length(bbx)
-%     fprintf(fid, '%d ', ix);
-%     fprintf(fid, '%d ', int32(bbx(ix,:)));
-%     fprintf(fid, '%d ', int32(areas(ix,:)));
-%     fprintf(fid, '%d ', int32(centroids(ix,:)));
+%     fprintf(fid, '%d %d %d %d', ix, bbx(ix,:), areas(ix,:),centroids(ix,:));
 %     fprintf(fid, '\n');
 % end
