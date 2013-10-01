@@ -1,5 +1,5 @@
 % writes things to the file
-writeXYZR2txt('./results/ex1_groundtruth_all.txt', floor(gtlistreordered))
+writeXYZR2txt('./results/ex1_groundtruth_all_orig.txt', floor(gtlistreordered))
 writeXYZR2txt('./results/ex1_groundtruth_all4x.txt',  floor(gtlistreordered.*4));
 
 writeXYZR2txt('./results/ex1_groundtruth_hit.txt',  floor([gtx(gthitIx==1),gty(gthitIx==1),gtz(gthitIx==1),floor(gtr(gthitIx==1))]));
