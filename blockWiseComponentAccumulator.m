@@ -313,9 +313,9 @@ end
 
 %% saving again
 if(verbose && saveResults)
-    disp('saving maximum label value, component voxel counts, and component voxel lists');
+    disp('\n saving maximum label value, component voxel counts, and component voxel lists');
     save(resultsMatFile,'mxlabel','labelhist','Volume_th','labelcounter','ccpixlistI','-v7.3');
-    disp('now calculating centroid and bounding box');
+    disp('\n now calculating centroid and bounding box');
 end
 
 %% calculating region props, bounding box and centroids
@@ -340,7 +340,7 @@ CC.bbx =  cat(1, s.BoundingBox);
 CC.areas =  cat(1, s.Area);
 
 if(verbose && saveResults)
-    disp('saving the data structure which ');
+    disp('\n saving the data structure which ');
     save(strcat(folder, filename(1:end-3),'_bwca_CC.mat'),'CC','Volume_th','-v7.3');
 end
 
