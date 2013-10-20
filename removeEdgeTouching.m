@@ -17,3 +17,6 @@ CC2.bbx = CC.bbx(dtIndx,:);
 CC2.NumObjects = ndetections;
 CC2.PixelIdxList = CC.PixelIdxList(dtIndx);
 CC = CC2;
+
+dt_pixlists=CC2.PixelIdxList;
+dt_bb=CC2.bbx;

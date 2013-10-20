@@ -5,7 +5,7 @@
 % center
 %save(str)cat(fname,'detectionbb_mxlabel.mat'),'mxlabel','ccpixlistI', 'centroids', 'bbx', 'areas');
 %fnam = 'D:\mouse_brain\shawnnew\20130506-interareal_mag4\20130506-interareal_mag4\cc_smallish.h5'
-    root = 'D:\mouse_brain\20130506-interareal_mag4\ccout\paper_results\'
+    root = 'D:\mouse_brain\20130506-interareal_mag4\ccout\experiment2\'
     %root = 'D:\mouse_brain\20130506-interareal_mag4\ccout\whole_ilp8\'
     %d = load(strcat(root,'cc_th_50.h5detectionbb_mxlabel_all_regionProps.mat'));
     %d = load (strcat(root,'cc_th_50.h5detectionbb_mxlabel_all_regionProps.matcc_processed.mat'));
@@ -17,7 +17,8 @@
     fname = 'cc_th_50.h5all_region_props_vth1_25cc_processed_th_1000.mat'
     d = load (strcat(root,fname));
     CC  =d.CC;
-gt = load('gtintereal20130506.mat') %gives validannotations.
+%gt = load('gtintereal20130506.mat') %gives validannotations.
+gt = load('gtintereal20130506_12_10_13.mat') %gives validannotations.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
