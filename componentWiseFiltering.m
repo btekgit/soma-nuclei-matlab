@@ -1,5 +1,5 @@
 function newCC=componentWiseFiltering(root, inpCCName,Volume_th, outputFile)
-%function newCC=cleanSomaDetectionbyCC(root, inpCCName,Volume_th,outputFile)
+%function newCC=componentWiseFiltering(root, inpCCName,Volume_th,outputFile)
 %
 % The purpose of this function is to apply filtering and morphological
 % operations to separate attached nuclei, and fill volumes.
@@ -14,10 +14,10 @@ function newCC=componentWiseFiltering(root, inpCCName,Volume_th, outputFile)
 %
 % optional outputFile shows destination matfile name
 
-% by F. Boray Tek 02.10.2013 
-% 
+% by F. Boray Tek 02.10.2013
 %
-% You can redistribute, and/or modify this code. 
+%
+% You can redistribute, and/or modify this code.
 % This code is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,6 +28,7 @@ function newCC=componentWiseFiltering(root, inpCCName,Volume_th, outputFile)
 
 
 if nargin ==0
+    help componentWiseFiltering;
     root = 'D:\mouse_brain\shawnnew\ccout\whole\'
     inpCCName  ='cc_th_90.h5detectionbb_mxlabel_all_regionProps.mat';
 end
@@ -62,14 +63,17 @@ for o = 1: numObjects
     end
     
     % take bounding box
-    bbx = floor(d.CC.bbx(o,:));
+    bbx = double(floor(d.CC.bbx(o,:)));
     base = zeros(bbx(5), bbx(4),bbx(6));
     pix = d.CC.PixelIdxList{o};
     [py,px,pz] = ind2sub(imSize, pix);
+    
     % transform to local
-    newpy = py-bbx(2);
-    newpx = px-bbx(1);
-    newpz = pz-bbx(3);
+    newpy = py-bbx(2)+1;
+    newpx = px-bbx(1)+1;
+    newpz = pz-bbx(3)+1;
+    
+    
     newI = sub2ind(size(base), newpy, newpx, newpz);
     % reconstruct the volume shape
     base(newI) = 1;
@@ -108,14 +112,17 @@ for o = 1: numObjects
     lens = length(s);
     for i = 1: lens
         % we have a parted object
-        if ( s(i).Area> Volume_th)
+        if ( s(i).Area > Volume_th)
             % it is big enough to record
             % transform the coordinates.
             Ip = s(i).PixelIdxList;
             [ppy,ppx,ppz] = ind2sub(size(base), Ip);
-            oldpy = ppy+bbx(2);
-            oldpx = ppx+bbx(1);
-            oldpz = ppz+bbx(3);
+            oldpy = ppy+bbx(2)-1;
+            oldpx = ppx+bbx(1)-1;
+            oldpz = ppz+bbx(3)-1;
+            if(sum(oldpy>imSize(1))>0|sum(oldpx>imSize(2))>0|sum(oldpz>imSize(3)>0))
+                bpoint = 1;
+            end
             oldI = sub2ind(imSize, oldpy, oldpx, oldpz);
             %transformed coordinates are on oldI
             newCC.PixelIdxList{newObjectCounter} = oldI;
@@ -125,10 +132,10 @@ for o = 1: numObjects
     end
 end
 
-% the new CC has newObjectCounter-1 objects 
+% the new CC has newObjectCounter-1 objects
 newCC.NumObjects = newObjectCounter-1;
 
-%recompute everything, to make sure. 
+%recompute everything, to make sure.
 s  = regionprops(newCC, 'centroid','BoundingBox','Area');
 
 % write the structure

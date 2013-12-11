@@ -96,9 +96,9 @@ else
     end
 end
 
-if(ischar(saveResults))
-    if(~strcmpi(saveResults(end-2:end),'.mat'))
-        error([saveResults,'has not .mat extension'])
+    if(ischar(saveResults))
+    if(~strcmpi(saveResults(end-3:end),'.mat'))
+        error([saveResults,' has not a .mat extension'])
     end
     resultsMatFile = strcat([folder,saveResults]);
 elseif( saveResults ==1)
@@ -214,7 +214,8 @@ for iz= 1:length(setz)-1
     end
 end
 %% saving
-if(verbose && saveResults)
+if(verbose & saveResults)
+    disp('');
     disp('saving maximum label value and component voxel counts');
     save(resultsMatFile,'mxlabel', 'labelhist');
 end
@@ -312,10 +313,15 @@ for iz= 1:length(setz)-1
 end
 
 %% saving again
-if(verbose && saveResults)
-    disp('\n saving maximum label value, component voxel counts, and component voxel lists');
+if(verbose)
+    disp('');
+    disp(' saving maximum label value, component voxel counts, and component voxel lists');,
+end
+if  saveResults
     save(resultsMatFile,'mxlabel','labelhist','Volume_th','labelcounter','ccpixlistI','-v7.3');
-    disp('\n now calculating centroid and bounding box');
+end
+if verbose
+    disp('now calcualating region props');
 end
 
 %% calculating region props, bounding box and centroids
@@ -339,9 +345,12 @@ CC.centroids = cat(1, s.Centroid);
 CC.bbx =  cat(1, s.BoundingBox);
 CC.areas =  cat(1, s.Area);
 
-if(verbose && saveResults)
-    disp('\n saving the data structure which ');
-    save(strcat(folder, filename(1:end-3),'_bwca_CC.mat'),'CC','Volume_th','-v7.3');
+if(verbose)
+    disp('');
+    disp('saving the data structure which ');
+end
+if saveResults
+    save(resultsMatFile,'CC','Volume_th','-v7.3');
 end
 
 %% optionally you can dump them to txt files which takes too long;

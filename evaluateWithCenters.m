@@ -52,8 +52,12 @@ for igt = 1: ngt
         end
     end
     
+    if(gtx(igt)<320 & gtx(igt)>230 & gty(igt)<320 & gty(igt)>250 & gtz(igt)<80)
+        gtlist(igt,:)
+    end
     
-
+    
+    
     
 end
 
