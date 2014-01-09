@@ -1,7 +1,7 @@
-%% add additional soma's to Shawn original  
+%% add additional soma's to Shawn original
 function gtlist = updateSomaGT(gtlist)
 s = load('btek_marked_gt.txt')
-%columns x,y,z,Label of the detection (to learn the size. ) 
+%columns x,y,z,Label of the detection (to learn the size. )
 
 % however I will skip the size and use a fix size of radius =10;
 slabels = s(:,4);
@@ -12,19 +12,19 @@ slabels = s(:,4);
 length(ix)
 %disp(' additional gt');
 add_gt = s(ix,1:3);
-FIX_RADIUS = ones(length(ix),1).*12; 
+FIX_RADIUS = ones(length(ix),1).*12;
 add_gt = [FIX_RADIUS,add_gt];
 fprintf('original gt size:%d, added = %d \n', length(gtlist), length(ix));
 gtlist = [gtlist;add_gt];
 length(gtlist)
-%search for overlaping ones of the ones we are adding. 
+%search for overlaping ones of the ones we are adding.
 clean_new_gt =[];
 for i = 1:  length(gtlist)
     dist_centers = (gtlist(i,2)-gtlist(:,2)).*(gtlist(i,2)-gtlist(:,2))+...
         (gtlist(i,3)-gtlist(:,3)).*(gtlist(i,3)-gtlist(:,3))+ ...
         (gtlist(i,4)-gtlist(:,4)).*(gtlist(i,4)-gtlist(:,4));
     % there is a another gt less than one radius away
-    closeenough = sqrt(dist_centers)<= gtlist(i,1); 
+    closeenough = sqrt(dist_centers)<= gtlist(i,1);
     % by checking this I want to ensure if a detection was counted as hit
     % before it is not used again.
     closeenough_other = setdiff(find(closeenough),i);
@@ -37,8 +37,8 @@ for i = 1:  length(gtlist)
         end
     end
 end
-        
-% post study  confirmed  that indices 44, 1008, 3147 are doubles. 
+
+% post study  confirmed  that indices 44, 1008, 3147 are doubles.
 remove_indices = [44,1008,3147];
 fprintf('removing index: %d \n', remove_indices);
 
@@ -46,4 +46,4 @@ valids = setdiff(1:length(gtlist), remove_indices);
 gtlist = gtlist(valids,:);
 fprintf('final length of gts:%d \n', length(gtlist));
 
-    
+

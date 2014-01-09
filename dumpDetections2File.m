@@ -1,7 +1,7 @@
 %dumps detections to the file for inspection with hdfview, review.py
 
 
-    rsfile = strcat(root, fname(1:end-4),'_evaluations_20_10_2013.h5');
+    rsfile = strcat(root,'\', fname(1:end-4),'_evaluations_20_10_2013.h5');
     if(~exist(rsfile))
         
         reconstructDetMaskToHdf5(rsfile, '/TD', imSize,ndetections, dt_pixlists,dt_bb, dthitIx==1);
