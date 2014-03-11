@@ -1,15 +1,17 @@
-function [rates,tdgt, tddt, fd,gt_hit,dt_hit ] = evaluateWithCenters(gtlist,CC, sizeIm)
+function [rates,tdgt, tddt, fd,gt_hit,dt_hit,dt_hit_relaxed, hitIndx ] = evaluateWithCenters(gtlist,CC, sizeIm)
 % this function only finds close centers as hits.
-% because of 1-1 match. It consider unmatched detections as false.
+% because of 1-1 match. It considers unmatched detections as false.
 % however dt_hit_relaxed calculates more relaxed detection of 1-to-many to
 % analyse if we find multiple objects trying to hit the same soma.
+
+% hitIndx shows which ground truth id is hit by the detection
 dt_ctr=  CC.centroids;
 dt_pixlist = CC.PixelIdxList;
 
-gtx = gtlist(:,1);
-gty = gtlist(:,2);
-gtz = gtlist(:,3);
-gtr = gtlist(:,4);
+gtx = double(gtlist(:,1));
+gty = double(gtlist(:,2));
+gtz = double(gtlist(:,3));
+gtr = double(gtlist(:,4));
 
 % this part is for comparison without reconstruction
 ndetections = length(dt_ctr);
@@ -19,6 +21,7 @@ gt_hitIx = [];
 gt_hitrelaxed = zeros(length(gtr),1);
 dt_hit = zeros(ndetections,1);
 dt_hit_relaxed = zeros(ndetections,1);
+hitIndx = zeros(ndetections,1 );
 ngt = length(gtlist);
 disp('completed: ');
 for igt = 1: ngt
@@ -47,14 +50,16 @@ for igt = 1: ngt
         %if (mxVal>100)
         if ( mxVal >= gtr(igt))
             gt_hit(igt) = 1;
+            
             dt_hit(closeenough_free(mxIx)) = 1;
-            dt_hit_relaxed(closeenough_free) = 1;
+            hitIndx(closeenough_free(mxIx)) = igt;
+            dt_hit_relaxed(closeenough_free(overlaps>1)) = 1; % if there is a overlap
         end
     end
     
-    if(gtx(igt)<320 & gtx(igt)>230 & gty(igt)<320 & gty(igt)>250 & gtz(igt)<80)
-        gtlist(igt,:)
-    end
+    %f(gtx(igt)<320 & gtx(igt)>230 & gty(igt)<320 & gty(igt)>250 & gtz(igt)<80)
+    %   gtlist(igt,:)
+    %end
     
     
     
@@ -76,7 +81,7 @@ function [mxIx,mxVal,overlaps] = calculateBestOverlap(gty, gtx, gtz, gtr, ndets,
 
 overlaps = zeros(ndets,1);
 for i = 1: ndets
-    pixlist = dtlist{dtpixIx(i)};
+    pixlist = double(dtlist{dtpixIx(i)});
     nPix = calculateInRadiusPix(gty, gtx, gtz, gtr, pixlist, sizeIm);
     overlaps(i) = nPix;
 end

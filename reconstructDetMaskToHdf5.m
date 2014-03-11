@@ -47,7 +47,7 @@ for i = 1:numObjects
     msk = uint16(zeros(leny, lenx, lenz));   
     newI = sub2ind(size(msk),newpy, newpx, newpz);
     
-    msk(newI) = i; 
+    msk(newI) = 1; 
     
     % these are xyz 
     startix = double([bb(1), bb(2), bb(3)]);

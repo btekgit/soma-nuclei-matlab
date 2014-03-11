@@ -73,6 +73,7 @@ for i = 1: nChilds
                     elseif(strcmp(thislabel,'gc'))
                         gtlabels(c,2) = 4;
                     else
+                        % there is one p
                         gtlabels(c,2) = 5;
                         thislabel
                     end
@@ -100,10 +101,26 @@ validannotations(:,3:6) = validannotations(:,3:6)./gtmag;
 validannotations= floor(validannotations);
 
 % possibly this is zero based index- must add one. but did not
-zerobasedindexing = 1
+options.zerobasedindexing = 1
 
-%save('gtintereal20130506.mat', 'gtmarks', 'validannotations', 'zerobasedindexing');
-save('gtintereal20130506_12_10_13.mat', 'gtmarks', 'validannotations', 'zerobasedindexing');
+%sortIndexes to solve potential problems
+options.sortedIndexes = 1; 
+[srtval,srtIx] = sort(validannotations(:,2),1);
+validannotationsorted = validannotations(srtIx,:);
+[srtval,srtIx] = sort(validClassLabels(:,1),1);
+validClassLabelsSorted = validClassLabels(srtIx,:);
+if(sum(validannotationsorted(:,2)~=validClassLabelsSorted(:,1)))
+    disp('class label indices mismatch with annotations');
+    disp('press a key to continue');
+    pause;
+end
+
+% annotations will contain labels as well
+validannotations = [validannotationsorted,validClassLabelsSorted(:,2)];
+validClassLabels = validClassLabelsSorted;
+options.columnNames = ['tree id','node id', 'radius', 'x','y','z','label'];
+%save('gtintereal20130506.mat', 'gtmarks', 'validannotations', 'options');
+save('gtintereal20130506_11_02_14.mat', 'gtmarks', 'validannotations','validClassLabels','options');
 
 % save this thing
 % also some node's have no attribute, check validmarks second column > 0

@@ -1,6 +1,6 @@
 function writeCCFeaturesToHDF5(greyFile, greyDSet, CC, outfname)
 %function writeCCFeaturesToHDF5(greyFile, greyDSet, CC, outfname)
-% 11.09.2013 BT 
+% 11.09.2013 BT
 if(nargin==0)
     greyFile = ('D:\mouse_brain\20130506-interareal_mag4\ilastikio\20130506-interareal_mag420130722_132814-x0-8_y0-6_z0-59.h5');
     greyDSet = ('/G1/20130722_132814');
@@ -32,7 +32,7 @@ end
 for o = 1: numObjects
     
     completed = floor(o/numObjects*100);
-     if (mod(o,50)==0)
+    if (mod(o,50)==0)
         fprintf('\b\b\b');
         fprintf('%3d', completed);
     end
@@ -92,6 +92,7 @@ for o = 1: numObjects
     
     
     % volume granulometry
+    disp('bypassed granulometry');
     fea_gran = calculate3DVolumeGranulometry(graycube,base, granbins);
     
     %feature_names = {'Volume', 'Centroid', 'Perimeter', 'PseudoRadius', 'Complexity',...
@@ -104,20 +105,20 @@ for o = 1: numObjects
     features{4}(o) = fea_perim;
     features{5}(o) =  fea_pseudo_rad;
     features{6}(o) =  fea_perim_area;
-    features{7}(o) = fea_box_to_vol; 
-    features{8}(o) = fea_box_aspect_ratio; 
-    features{9}(o) = fea_pixmax; 
-    features{10}(o) = fea_pixmean; 
-    features{11}(o) = fea_pixmin; 
-    features{12}(o) = fea_pixstd; 
+    features{7}(o) = fea_box_to_vol;
+    features{8}(o) = fea_box_aspect_ratio;
+    features{9}(o) = fea_pixmax;
+    features{10}(o) = fea_pixmean;
+    features{11}(o) = fea_pixmin;
+    features{12}(o) = fea_pixstd;
     features{13}(o,:) = fea_close_mass;
     
     features{14}(o,:) = fea_pixhist;
     features{15}(o,:) = fea_gran;
-   
+    
     
 end
- fprintf('\n');
+fprintf('\n');
 
 writeFeatures2HDF5(outfname, numObjects, features, feature_names, feature_lengths)
 end
@@ -133,12 +134,12 @@ for f = 1: length(features)
         data_size = fliplr([numObjects,featureLength(f)]);
         feature_data = feature_data';
     end
-        
+    
     h5create(outfname,['/',featureNames{f}],data_size,'Datatype','double');
     
-%     if(rank(feature_data)>1)
-%     feature_data = transpose(feature_data);
-%     end
+    %     if(rank(feature_data)>1)
+    %     feature_data = transpose(feature_data);
+    %     end
     h5write(outfname, ['/',featureNames{f}], feature_data);
 end
 end
@@ -161,7 +162,7 @@ closeenough = sqrt(dist_centers)<= PROXIMITY_THRESHOLD;%(1.5*gtr(igt));
 closeind = setdiff(find(closeenough==1),thisIndex);
 % found itself
 if((isempty(closeind)))
-    close_mass_ratio  = -1; 
+    close_mass_ratio  = -1;
     return;
 end
 
@@ -196,20 +197,25 @@ end
 if(lenCC==1)
     surfaceLength = length(CC.PixelIdxList{1});
     surfacePixels = msk;
-    surfacePixels =0;
+    
     surfacePixels(CC.PixelIdxList{1}) = max(msk(:));
     return;
-end
-% if there are more than one connected component
-% I assume the largest connected component is the perimeter
-regioninfo = regionprops(CC, 'Area');
-areas = cat(1,regioninfo.Area);
-[mxval, mxarg] = max(areas);
-surfaceLength = mxval;
-if (nargout==2)
-    surfacePixels = msk;
-    surfacePixels =0;
-    surfacePixels(CC.PixelIdxList{mxarg}) = max(msk(:));
+elseif (lenCC ==0)
+    surfaceLength = 0;
+    surfacePixels = zeros(size(msk));
+    return;
+else
+    
+    % if there are more than one connected component
+    % I assume the largest connected component is the perimeter
+    regioninfo = regionprops(CC, 'Area');
+    areas = cat(1,regioninfo.Area);
+    [mxval, mxarg] = max(areas);
+    surfaceLength = mxval;
+    if (nargout==2)
+        surfacePixels = msk;
+        surfacePixels(CC.PixelIdxList{mxarg}) = max(msk(:));
+    end
 end
 end
 

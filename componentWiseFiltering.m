@@ -16,6 +16,8 @@ function newCC=componentWiseFiltering(root, inpCCName,Volume_th, outputFile)
 
 % by F. Boray Tek 02.10.2013
 %
+% revision to reduce memory usage 06.02.2014 by BT
+%
 %
 % You can redistribute, and/or modify this code.
 % This code is distributed in the hope that it will be useful,
@@ -49,8 +51,14 @@ dummy = zeros(1,1,1);
 newCC = bwconncomp(dummy);
 newCC.ImageSize = d.CC.ImageSize;
 newCC.Connectivity = d.CC.Connectivity;
+useFileforIntermediate = 1;
+if(useFileforIntermediate)
+    filenewCC = fopen(strcat(root,'\newCCdump.txt'),'wt');
+end
 for o = 1: numObjects
+    
     completed = floor(o/numObjects*100);
+    
     if (mod(o,50)==0)
         fprintf('\b\b\b');
         fprintf('%3d', completed);
@@ -94,14 +102,19 @@ for o = 1: numObjects
     % below limits the radius with 11 and size SE 22x22x22
     % due to performance reasons.
     if ( opening_radius>MAX_SPHERE_RADIUS)
+        bigobjradius=pseudorad
         opening_radius = MAX_SPHERE_RADIUS;
     end
+    % clearing to open space in memory
+    clear base;
     
     se = createDiskSe(floor(opening_radius));
     
     % apply opening
     openedbase = imopen(newbase, se);
     % apply filling
+    % clearing to open space in memory first
+    clear newbase;
     openedfilled = imfill(openedbase, 'holes');
     
     % count how many objects are there here.
@@ -116,21 +129,47 @@ for o = 1: numObjects
             % it is big enough to record
             % transform the coordinates.
             Ip = s(i).PixelIdxList;
-            [ppy,ppx,ppz] = ind2sub(size(base), Ip);
+            [ppy,ppx,ppz] = ind2sub(size(relabel), Ip);
             oldpy = ppy+bbx(2)-1;
             oldpx = ppx+bbx(1)-1;
             oldpz = ppz+bbx(3)-1;
             if(sum(oldpy>imSize(1))>0|sum(oldpx>imSize(2))>0|sum(oldpz>imSize(3)>0))
-                bpoint = 1;
+                unexpected_error = 1
             end
             oldI = sub2ind(imSize, oldpy, oldpx, oldpz);
             %transformed coordinates are on oldI
-            newCC.PixelIdxList{newObjectCounter} = oldI;
-            %
-            newObjectCounter = newObjectCounter+1;
+            if (~useFileforIntermediate)
+                newCC.PixelIdxList{newObjectCounter} = oldI;
+                %
+                newObjectCounter = newObjectCounter+1;
+            else
+                fprintf(filenewCC,'%d ',oldI);
+                fprintf(filenewCC,'\n');
+                newObjectCounter = newObjectCounter+1;
+                
+            end
         end
     end
 end
+
+clear d;
+
+if (useFileforIntermediate)
+    fclose(filenewCC);
+    newCC.PixelIdxList = cell(newObjectCounter-1,1);
+    filenewCC = fopen(strcat(root,'\newCCdump.txt'),'r');
+    for i= 1:newObjectCounter
+        tline = fgetl(filenewCC);
+        if(isempty(tline)| tline==-1 )
+            break;
+        end
+        pixlist = double(sscanf(tline, '%f '));
+        newCC.PixelIdxList{i} = pixlist;
+    end
+    fclose(filenewCC);
+end
+
+
 
 % the new CC has newObjectCounter-1 objects
 newCC.NumObjects = newObjectCounter-1;

@@ -1,6 +1,6 @@
-function numberOutRange = extractSomaGTVOIs(sizeIm,gtlist,grayFile, grayDataSet, mskFile, mskDataset,outputFolder)
-% extract GT Vois from Gray Level Data and writes them independently to
-% Hdf5File. the file name has the x_y_z_and radius info in the same order. 
+function numberOutRange = extractSomaGTVOIs(sizeIm,gtlist,grayFile, grayDataSet,gtIndexes, everyOther, outputFolder)
+% extracts GT Vois from Gray Level Data and writes them independently to
+% Hdf5Files. the file name has the x_y_z_and radius info in the same order. 
 % sprintf('soma_x%d_y%d_z%d_r%d', x(i),y(i),z(i), r(i)),'.h5');
 % WindowK = 3;  controls the width-height-depth of the window to be
 % extracted window size will be '2*WindowK+radius+1'
@@ -12,10 +12,10 @@ if nargin < 3
     outputFolder = 'D:\mouse_brain\shawnnew\20130506-interareal_mag4\gtvoi\';
 end
 
-r = gtlist(:,3);
-x = gtlist(:,4);
-y = gtlist(:,5);
-z = gtlist(:,6);
+r = gtlist(:,gtIndexes(1));
+x = gtlist(:,gtIndexes(2));
+y = gtlist(:,gtIndexes(3));
+z = gtlist(:,gtIndexes(4));
 lengt = length(z);
 WindowK = 32; 
 ny = y-r-WindowK; 
@@ -27,7 +27,6 @@ pz= z+WindowK+r;
 
 numberOutRange = 0; 
 chnkSize = [32 32 32];
-everyOther = 20;
 k = 1; 
 %% extract and
 somas = cell(lengt,1);
@@ -90,7 +89,7 @@ for i = 1:everyOther: lengt
 
     sizecube_z = size(graycube,3);sizecube_y = size(graycube,1);sizecube_x = size(graycube,2);
     
-    voih5filename = strcat(outputFolder, sprintf('gray_x%d_y%d_z%d_r%d', x(i),y(i),z(i), r(i)),'.h5');
+    voih5filename = strcat(outputFolder, sprintf('nucleus_%d_x%d_y%d_z%d_r%d', i,x(i),y(i),z(i), r(i)),'.h5');
     flippable_size = [sizecube_z,sizecube_y,sizecube_x];
     h5create(voih5filename,'/soma',flippable_size,'Datatype','uint8', ...
                  'FillValue',uint8(0),'ChunkSize',chnkSize,'Deflate',1);
@@ -100,11 +99,12 @@ for i = 1:everyOther: lengt
     repermutecube = permute(graycube, [3,1,2]);
     h5write(voih5filename, '/soma',repermutecube,[1 1 1],flippable_size);
     
-    somas{k} = graycube;
-    somaDescription{k} = [gtlist(i), [c_posx, c_posy, c_posz]];
+ %   somas{k} = graycube;
+    somaDescription{k} = [i, gtlist(i), [c_posx, c_posy, c_posz]];
+    k = k+1;
          %   msk(rangey,rangex,rangez) = i; 
 end
 
-save(strcat(outputFolder,'soma_',num2str(WindowK), '.mat'), 'somas', 'somaDescription');
+save(strcat(outputFolder,'voi_descriptions_',num2str(WindowK), '.mat'),  'somaDescription');
 
 
